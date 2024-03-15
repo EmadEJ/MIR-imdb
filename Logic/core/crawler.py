@@ -11,8 +11,9 @@ class IMDbCrawler:
     put your own user agent in the headers
     """
     headers = {
-        'User-Agent': None
+        'User-Agent': 'Mozilla/5.0'
     }
+    domain_URL = 'https://www.imdb.com'
     top_250_URL = 'https://www.imdb.com/chart/top/'
 
     def __init__(self, crawling_threshold=1000):
@@ -24,11 +25,10 @@ class IMDbCrawler:
         crawling_threshold: int
             The number of pages to crawl
         """
-        # TODO
-        self.crawling_threshold = None
-        self.not_crawled = None
-        self.crawled = None
-        self.added_ids = None
+        self.crawling_threshold = crawling_threshold
+        self.not_crawled = []
+        self.crawled = []
+        self.added_ids = []
         self.add_list_lock = None
         self.add_queue_lock = None
 
@@ -46,7 +46,6 @@ class IMDbCrawler:
         str
             The id of the site
         """
-        # TODO
         return URL.split('/')[4]
 
     def write_to_file_as_json(self):
@@ -82,15 +81,18 @@ class IMDbCrawler:
         requests.models.Response
             The response of the get request
         """
-        # TODO
-        return None
+        return get(URL, headers=self.headers)
 
     def extract_top_250(self):
         """
         Extract the top 250 movies from the top 250 page and use them as seed for the crawler to start crawling.
         """
         # TODO update self.not_crawled and self.added_ids
-
+        response = self.crawl(self.top_250_URL)
+        soup = BeautifulSoup(response._content, 'html.parser')
+        links = [(self.domain_URL + link.get('href')) for link in soup.find_all('a', class_='ipc-title-link-wrapper') if link.get('href').startswith('/title')]
+        self.not_crawled = links
+        self.added_ids = [self.get_id_from_URL(link) for link in links]
 
     def get_imdb_instance(self):
         return {
@@ -140,7 +142,7 @@ class IMDbCrawler:
             while WHILE_LOOP_CONSTRAINTS:
                 URL = NEW_URL
                 futures.append(executor.submit(self.crawl_page_info, URL))
-                if THERE_IS_NOTHING_TO_CRAWL:
+                if len(self.not_crawled) == 0:
                     wait(futures)
                     futures = []
 
@@ -155,7 +157,8 @@ class IMDbCrawler:
             The URL of the site
         """
         print("new iteration")
-        # TODO
+        res = self.crawl(URL)
+        movie = self.extract_movie_info(res, self.get_imdb_instance(), URL)
         pass
 
     def extract_movie_info(self, res, movie, URL):
@@ -554,9 +557,11 @@ class IMDbCrawler:
 
 def main():
     imdb_crawler = IMDbCrawler(crawling_threshold=600)
+    imdb_crawler.extract_top_250()
+    print(imdb_crawler.get_id_from_URL('https://www.imdb.com/title/tt0099348/?ref_=chttp_t_250'))
     # imdb_crawler.read_from_file_as_json()
-    imdb_crawler.start_crawling()
-    imdb_crawler.write_to_file_as_json()
+    # imdb_crawler.start_crawling()
+    # imdb_crawler.write_to_file_as_json()
 
 
 if __name__ == '__main__':
