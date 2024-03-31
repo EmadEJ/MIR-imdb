@@ -30,9 +30,9 @@ class Index:
         dict
             The index of the documents based on the document ID.
         """
-
         current_index = {}
-        #         TODO
+        for doc in self.preprocessed_documents:
+            current_index[doc['id']] = doc
 
         return current_index
 
@@ -46,9 +46,20 @@ class Index:
             The index of the documents based on the stars. You should also store each terms' tf in each document.
             So the index type is: {term: {document_id: tf}}
         """
+        current_index = {}
+        for doc in self.preprocessed_documents:
+            stars = doc['stars']
+            terms = []
+            for star in stars:
+                terms.extend(star.split())
+            
+            unique_terms = list(set(terms))
+            for term in unique_terms:
+                if current_index.get(term) is None:
+                    current_index[term] = {}
+                current_index[term][doc['id']] = terms.count(term)
 
-        #         TODO
-        pass
+        return current_index
 
     def index_genres(self):
         """
@@ -60,9 +71,20 @@ class Index:
             The index of the documents based on the genres. You should also store each terms' tf in each document.
             So the index type is: {term: {document_id: tf}}
         """
+        current_index = {}
+        for doc in self.preprocessed_documents:
+            genres = doc['genres']
+            terms = []
+            for genre in genres:
+                terms.extend(genre.split())
+            
+            unique_terms = list(set(terms))
+            for term in unique_terms:
+                if current_index.get(term) is None:
+                    current_index[term] = {}
+                current_index[term][doc['id']] = terms.count(term)
 
-        #         TODO
-        pass
+        return current_index
 
     def index_summaries(self):
         """
@@ -76,8 +98,18 @@ class Index:
         """
 
         current_index = {}
-        #         TODO
-
+        for doc in self.preprocessed_documents:
+            summaries = doc['summaries']
+            terms = []
+            for summary in summaries:
+                terms.extend(summary.split())
+            
+            unique_terms = list(set(terms))
+            for term in unique_terms:
+                if current_index.get(term) is None:
+                    current_index[term] = {}
+                current_index[term][doc['id']] = terms.count(term)
+        
         return current_index
 
     def get_posting_list(self, word: str, index_type: str):
@@ -98,9 +130,9 @@ class Index:
         """
 
         try:
-            #         TODO
-            pass
+            return self.index[index_type][word].keys()
         except:
+            print(f"{word} was not found in index of {index_type}")
             return []
 
     def add_document_to_index(self, document: dict):
@@ -200,14 +232,18 @@ class Index:
             os.makedirs(path)
 
         if index_type is None:
-            # TODO
-            pass
+            path = path + 'tiered_index.json'
+            with open(path, 'w') as FILE:
+                json.dump(self.index, FILE)
+            return
 
         if index_type not in self.index:
             raise ValueError('Invalid index type')
 
-        #         TODO
-        pass
+        path = path + index_type + '_index.json'
+
+        with open(path, 'w') as FILE:
+            json.dump(self.index[index_type], FILE)
 
     def load_index(self, path: str):
         """
@@ -218,9 +254,8 @@ class Index:
         path : str
             Path to load the file
         """
-
-        #         TODO
-        pass
+        with open(path, 'r') as FILE:
+            return json.load(FILE)
 
     def check_if_index_loaded_correctly(self, index_type: str, loaded_index: dict):
         """
@@ -267,7 +302,7 @@ class Index:
                 continue
 
             for field in document[index_type]:
-                if check_word in field:
+                if check_word in field.split():
                     docs.append(document['id'])
                     break
 
@@ -303,3 +338,20 @@ class Index:
             return False
 
 # TODO: Run the class with needed parameters, then run check methods and finally report the results of check methods
+with open("preprocessed_docs.json", 'r') as FILE:
+    docs = json.load(FILE)
+
+docs = sorted(docs, key=lambda item: item['id'])
+
+index = Index(docs)
+print(index.check_if_indexing_is_good('summaries', 'john'))
+
+
+index.store_index('index/', 'stars')
+print(index.check_if_index_loaded_correctly('stars', index.load_index('index/stars_index.json')))
+index.store_index('index/', 'genres')
+print(index.check_if_index_loaded_correctly('genres', index.load_index('index/genres_index.json')))
+index.store_index('index/', 'summaries')
+print(index.check_if_index_loaded_correctly('summaries', index.load_index('index/summaries_index.json')))
+index.store_index('index/')
+
