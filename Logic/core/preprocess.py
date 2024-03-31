@@ -27,12 +27,17 @@ class Preprocessor:
             The preprocessed documents.
         """
         processed_docs = []
-        for text in self.documents:
-            text = self.remove_links(text)
-            text = self.remove_punctuations(text)
-            text = self.normalize(text)
-            words = self.tokenize(text)
-            processed_docs.append(' '.join(words))
+        for document in self.documents:
+            # summaries
+            new_summaries = []
+            for text in document['summaries']:
+                text = self.remove_links(text)
+                text = self.remove_punctuations(text)
+                text = self.normalize(text)
+                words = self.tokenize(text)
+                new_summaries.append(' '.join(words))
+            document['summaries'] = new_summaries    
+
         return processed_docs
 
     def normalize(self, text: str):
