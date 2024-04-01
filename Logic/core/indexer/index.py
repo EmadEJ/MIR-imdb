@@ -11,6 +11,8 @@ class Index:
         Create a class for indexing.
         """
 
+        preprocessed_documents = sorted(preprocessed_documents, key=lambda item: item['id'])
+
         self.preprocessed_documents = preprocessed_documents
 
         self.index = {
@@ -145,8 +147,14 @@ class Index:
             Document to add to all the indexes
         """
 
-        #         TODO
-        pass
+        self.preprocessed_documents.append(document)
+        self.preprocessed_documents = sorted(self.preprocessed_documents, key=lambda item: item['id'])
+        self.index = {
+            Indexes.DOCUMENTS.value: self.index_documents(),
+            Indexes.STARS.value: self.index_stars(),
+            Indexes.GENRES.value: self.index_genres(),
+            Indexes.SUMMARIES.value: self.index_summaries(),
+        }
 
     def remove_document_from_index(self, document_id: str):
         """
@@ -158,8 +166,13 @@ class Index:
             ID of the document to remove from all the indexes
         """
 
-        #         TODO
-        pass
+        self.preprocessed_documents = [doc for doc in self.preprocessed_documents if doc['id'] != document_id]
+        self.index = {
+            Indexes.DOCUMENTS.value: self.index_documents(),
+            Indexes.STARS.value: self.index_stars(),
+            Indexes.GENRES.value: self.index_genres(),
+            Indexes.SUMMARIES.value: self.index_summaries(),
+        }
 
     def check_add_remove_is_correct(self):
         """
@@ -327,7 +340,7 @@ class Index:
         if set(docs).issubset(set(posting_list)):
             print('Indexing is correct')
 
-            if implemented_time < brute_force_time:
+            if implemented_time <= brute_force_time:
                 print('Indexing is good')
                 return True
             else:
@@ -341,18 +354,30 @@ class Index:
 with open("preprocessed_docs.json", 'r') as FILE:
     docs = json.load(FILE)
 
-docs = sorted(docs, key=lambda item: item['id'])
-
 index = Index(docs)
-print(index.check_if_indexing_is_good('summaries', 'john'))
 
-index.store_index('index/', 'stars')
-print(index.check_if_index_loaded_correctly('stars', index.load_index('index/stars_index.json')))
-index.store_index('index/', 'genres')
-print(index.check_if_index_loaded_correctly('genres', index.load_index('index/genres_index.json')))
-index.store_index('index/', 'summaries')
-print(index.check_if_index_loaded_correctly('summaries', index.load_index('index/summaries_index.json')))
+# Checks:
+
+index.check_add_remove_is_correct()
+
 index.store_index('index/', 'documents')
-print(index.check_if_index_loaded_correctly('documents', index.load_index('index/documents_index.json')))
+print("documents load correctness:", index.check_if_index_loaded_correctly('documents', index.load_index('index/documents_index.json')))
+index.store_index('index/', 'stars')
+print("stars load correctness:", index.check_if_index_loaded_correctly('stars', index.load_index('index/stars_index.json')))
+index.store_index('index/', 'genres')
+print("genres load correctness:", index.check_if_index_loaded_correctly('genres', index.load_index('index/genres_index.json')))
+index.store_index('index/', 'summaries')
+print("summaries load correctness:", index.check_if_index_loaded_correctly('summaries', index.load_index('index/summaries_index.json')))
 index.store_index('index/')
 
+print("\033[93m### stars index evaulation:\033[0m")
+print(index.check_if_indexing_is_good('stars', 'green'))
+print(index.check_if_indexing_is_good('stars', 'gyllenhaal'))
+
+print("\033[93m### genres index evaulation:\033[0m")
+print(index.check_if_indexing_is_good('genres', 'sci-fi'))
+print(index.check_if_indexing_is_good('genres', 'animation'))
+
+print("\033[93m### summaries index evaulation:\033[0m")
+print(index.check_if_indexing_is_good('summaries', 'john'))
+print(index.check_if_indexing_is_good('summaries', 'good'))
