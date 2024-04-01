@@ -346,7 +346,6 @@ docs = sorted(docs, key=lambda item: item['id'])
 index = Index(docs)
 print(index.check_if_indexing_is_good('summaries', 'john'))
 
-
 index.store_index('index/', 'stars')
 print(index.check_if_index_loaded_correctly('stars', index.load_index('index/stars_index.json')))
 index.store_index('index/', 'genres')

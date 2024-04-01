@@ -12,16 +12,16 @@ class Metadata_index:
         path : str
             The path to the indexes.
         """
-        
-        #TODO
+        self.path = path
+        self.documents = self.read_documents()
+        self.metadata_index = self.create_metadata_index()
+        self.store_metadata_index(path)
 
     def read_documents(self):
         """
         Reads the documents.
-        
         """
-
-        #TODO
+        return Index_reader(self.path, index_name=Indexes.DOCUMENTS).index
 
     def create_metadata_index(self):    
         """
@@ -47,7 +47,10 @@ class Metadata_index:
             The field to get the document lengths for.
         """
 
-        #TODO
+        sum = 0
+        for _, doc in self.documents.items():
+            sum += len(doc[where])
+        return sum / len(self.documents)
 
     def store_metadata_index(self, path):
         """
