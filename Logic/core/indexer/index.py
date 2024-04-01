@@ -353,5 +353,7 @@ index.store_index('index/', 'genres')
 print(index.check_if_index_loaded_correctly('genres', index.load_index('index/genres_index.json')))
 index.store_index('index/', 'summaries')
 print(index.check_if_index_loaded_correctly('summaries', index.load_index('index/summaries_index.json')))
+index.store_index('index/', 'documents')
+print(index.check_if_index_loaded_correctly('documents', index.load_index('index/documents_index.json')))
 index.store_index('index/')
 
