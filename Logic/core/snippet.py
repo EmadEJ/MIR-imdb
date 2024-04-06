@@ -25,9 +25,9 @@ class Snippet:
             The query without stop words.
         """
 
-        # TODO: remove stop words from the query.
+        stopwords = ['a', 'an', 'the', 'this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
 
-        return
+        return ' '.join([word for word in query.split() if word not in self.stopwords])
 
     def find_snippet(self, doc, query):
         """
@@ -51,6 +51,6 @@ class Snippet:
         final_snippet = ""
         not_exist_words = []
 
-        # TODO: Extract snippet and the tokens which are not present in the doc.
+        query = query.lower()
 
         return final_snippet, not_exist_words
