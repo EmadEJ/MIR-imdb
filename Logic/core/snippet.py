@@ -27,7 +27,7 @@ class Snippet:
 
         stopwords = ['a', 'an', 'the', 'this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
 
-        return ' '.join([word for word in query.split() if word not in self.stopwords])
+        return ' '.join([word for word in query.split() if word not in stopwords])
 
     def find_snippet(self, doc, query):
         """
@@ -52,5 +52,47 @@ class Snippet:
         not_exist_words = []
 
         query = query.lower()
+        query = self.remove_stop_words_from_query(query)
+        query_words = query.split()
+        doc = doc.lower()
+        doc_words = doc.split()
+
+        indices = []
+        exacts = []
+
+        for query_word in query_words:
+            if query_word not in doc_words:
+                not_exist_words.append(query_word)
+                    
+            else:
+                idx = doc_words.index(query_word)
+                indices.append(idx)
+                exacts.append(idx)
+                for i in range(1, self.number_of_words_on_each_side):
+                    indices.append(idx + i)
+                    indices.append(idx - i)
+
+        indices = sorted(list(set(indices)))
+
+        if indices[0] > 0:
+            final_snippet = final_snippet + "... "
+
+        for idx, index in enumerate(indices):
+            if index < 0 or index >= len(doc_words):
+                continue
+            if idx > 0 and index > indices[idx - 1] + 1:
+                final_snippet = final_snippet + "... "
+            if index in exacts:
+                final_snippet = final_snippet + "***" + doc_words[index] + "*** "
+            else:
+                final_snippet = final_snippet + doc_words[index] + " "
+
+        if indices[-1] < len(doc_words) - 1:
+            final_snippet = final_snippet + "..."
 
         return final_snippet, not_exist_words
+
+snip = Snippet(3)
+query = "friend notebook home happy"
+doc = "Eight-year-old Ahmed has mistakenly taken his friend Mohammad's notebook He wants to return it, or else his friend will be expelled from school. The boy determinedly sets out to find Mohammad's home in the neighbouring village."
+print(snip.find_snippet(doc, query)[0])
