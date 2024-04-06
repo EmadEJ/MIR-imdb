@@ -243,19 +243,10 @@ class Index:
         if not os.path.exists(path):
             os.makedirs(path)
 
-        if index_type is None:
-            path = path + 'tiered_index.json'
-            with open(path, 'w') as FILE:
-                json.dump(self.index, FILE)
-            return
-
-        if index_type not in self.index:
-            raise ValueError('Invalid index type')
-
-        path = path + index_type + '_index.json'
+        path = path + index_name + '_index.json'
 
         with open(path, 'w') as FILE:
-            json.dump(self.index[index_type], FILE)
+            json.dump(self.index[index_name], FILE)
 
     def load_index(self, path: str):
         """
