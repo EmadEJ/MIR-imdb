@@ -74,6 +74,9 @@ class Snippet:
 
         indices = sorted(list(set(indices)))
 
+        if len(indices) == 0:
+            return "...", query_words
+
         if indices[0] > 0:
             final_snippet = final_snippet + "... "
 
@@ -92,7 +95,8 @@ class Snippet:
 
         return final_snippet, not_exist_words
 
-snip = Snippet(3)
-query = "friend notebook home happy"
-doc = "Eight-year-old Ahmed has mistakenly taken his friend Mohammad's notebook He wants to return it, or else his friend will be expelled from school. The boy determinedly sets out to find Mohammad's home in the neighbouring village."
-print(snip.find_snippet(doc, query)[0])
+if __name__ == '__main__':    
+    snip = Snippet(3)
+    query = "friend notebook home happy"
+    doc = "Eight-year-old Ahmed has mistakenly taken his friend Mohammad's notebook He wants to return it, or else his friend will be expelled from school. The boy determinedly sets out to find Mohammad's home in the neighbouring village."
+    print(snip.find_snippet(doc, query)[0])

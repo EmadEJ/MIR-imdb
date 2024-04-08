@@ -1,4 +1,4 @@
-from indexer.indexes_enum import Indexes,Index_types
+from .indexes_enum import Indexes,Index_types
 
 import json
 class Index_reader:

@@ -1,7 +1,9 @@
 import streamlit as st
 import sys
+import os
 
-sys.path.append("../")
+sys.path.insert(0, os.path.join(sys.path[0], '../..'))
+# sys.path.append("E:\University\Term 6\Modern Information Retreival\Project\MIR-imdb")
 from Logic import utils
 import time
 from enum import Enum
@@ -18,12 +20,26 @@ class color(Enum):
     GREEN = "#00FF00"
     BLUE = "#0000FF"
     YELLOW = "#FFFF00"
-    WHITE = "#FFFFFF"
     CYAN = "#00FFFF"
     MAGENTA = "#FF00FF"
 
 
 def get_summary_with_snippet(movie_info, query):
+    summary = ' '.join(movie_info['summaries'])
+    snippet, not_exist_words = snippet_obj.find_snippet(summary, query)
+    summary = snippet
+    if "***" in snippet:
+        snippet = snippet.split()
+        for i in range(len(snippet)):
+            current_word = snippet[i]
+            if current_word.startswith("***") and current_word.endswith("***"):
+                current_word_without_star = current_word[3:-3]
+                summary = summary.lower().replace(
+                    current_word_without_star,
+                    f"<b><font size='4' color={random.choice(list(color)).value}>{current_word_without_star}</font></b>",
+                )
+    return summary + " SAG TO IN SNIPPET ZADANETOON. KHODAM MAJBOOR SHODAM BEZANAM"
+
     summary = movie_info["first_page_summary"]
     snippet, not_exist_words = snippet_obj.find_snippet(summary, query)
     if "***" in snippet:

@@ -1,8 +1,8 @@
 from typing import Dict, List
-from core.search import SearchEngine
-from core.spell_correction import SpellCorrection
-from core.snippet import Snippet
-from core.indexer.indexes_enum import Indexes, Index_types
+from .core.search import SearchEngine
+from .core.spell_correction import SpellCorrection
+from .core.snippet import Snippet
+from .core.indexer.indexes_enum import Indexes, Index_types
 import json
 
 movies_dataset = {}
@@ -13,7 +13,7 @@ for doc in documents:
 search_engine = SearchEngine()
 
 
-def correct_text(text: str, all_documents: List[str]) -> str:
+def correct_text(text: str, all_documents) -> str:
     """
     Correct the give query text, if it is misspelled using Jacard similarity
 
@@ -28,9 +28,11 @@ def correct_text(text: str, all_documents: List[str]) -> str:
     str
         The corrected form of the given text
     """
-    # TODO: You can add any preprocessing steps here, if needed!
-    spell_correction_obj = SpellCorrection(all_documents)
+    doc_strings = [' '.join(doc['stars'] + doc['genres'] + doc['summaries']) for doc in all_documents.values() if len(doc['summaries']) > 0]
+    print("query was:", text)
+    spell_correction_obj = SpellCorrection(doc_strings)
     text = spell_correction_obj.spell_check(text)
+    print("turned to:", text)
     return text
 
 
@@ -67,8 +69,8 @@ def search(
     """
     weights = {
         Indexes.STARS: weights[0],
-        Indexes.STARS: weights[1],
-        Indexes.STARS: weights[2],
+        Indexes.GENRES: weights[1],
+        Indexes.SUMMARIES: weights[2],
     }
     return search_engine.search(
         query, method, weights, max_results=max_result_count, safe_ranking=True

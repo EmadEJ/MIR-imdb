@@ -1,9 +1,9 @@
 import json
 import numpy as np
-from preprocess import Preprocessor
-from scorer import Scorer
-from indexer.indexes_enum import Indexes, Index_types
-from indexer.index_reader import Index_reader
+from .preprocess import Preprocessor
+from .scorer import Scorer
+from .indexer.indexes_enum import Indexes, Index_types
+from .indexer.index_reader import Index_reader
 
 
 class SearchEngine:
@@ -64,11 +64,9 @@ class SearchEngine:
             self.find_scores_with_unsafe_ranking(query, method, weights, max_results, scores)
 
         final_scores = {}
-        
-
+    
         self.aggregate_scores(weights, scores, final_scores)
         
-        print(final_scores)
         result = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
         if max_results is not None:
             result = result[:max_results]
@@ -150,7 +148,6 @@ class SearchEngine:
         scores : dict
             The scores of the documents.
         """
-
         for field in weights:
             scorer = Scorer(self.document_indexes[field], self.metadata_index['document_count'])
             if method == 'OkapiBM25':

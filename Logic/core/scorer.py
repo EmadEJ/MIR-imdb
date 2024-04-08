@@ -1,6 +1,6 @@
 import numpy as np
-from indexer.index_reader import Index_reader
-from indexer.indexes_enum import Indexes,Index_types
+from .indexer.index_reader import Index_reader
+from .indexer.indexes_enum import Indexes,Index_types
 
 class Scorer:    
     def __init__(self, index, number_of_documents):
@@ -117,6 +117,8 @@ class Scorer:
         docs = self.get_list_of_documents(query)
         query_tfs = self.get_query_tfs(query)
         
+        # print("In vector space", len(docs))
+
         doc_scores = {}
         for doc_id in docs:
             doc_scores[doc_id] = self.get_vector_space_model_score(query, query_tfs, doc_id, method[0:3], method[4:7])

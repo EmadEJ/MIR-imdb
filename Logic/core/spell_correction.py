@@ -108,6 +108,8 @@ class SpellCorrection:
         word_shingle = self.shingle_word(word.lower())
 
         for candidate, candidate_shingled in self.all_shingled_words.items():
+            if candidate == word:
+                return [word, word, word, word, word]
             if len(top5_candidates) < 5:
                 top5_candidates.append(candidate)
             else:
@@ -155,12 +157,12 @@ class SpellCorrection:
 
         return final_result.strip()
     
+if __name__ == "__main__":
+    with open("preprocessed_docs.json", "r") as FILE:
+        all_documents = json.load(FILE)
 
-with open("preprocessed_docs.json", "r") as FILE:
-    all_documents = json.load(FILE)
+    doc_strings = [' '.join(doc['stars'] + doc['genres'] + doc['summaries']) for doc in all_documents if len(doc['summaries']) > 0]
 
-doc_strings = [' '.join(doc['stars'] + doc['genres'] + doc['summaries']) for doc in all_documents if len(doc['summaries']) > 0]
+    sc = SpellCorrection(doc_strings)
 
-sc = SpellCorrection(doc_strings)
-
-print(sc.spell_check("The amazing soectacular unbeleivable astonishing alright breakaing"))
+    print(sc.spell_check("The amazing soectacular unbeleivable astonishing alright breakaing"))
