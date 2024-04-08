@@ -76,7 +76,7 @@ class MinHashLSH:
 
         return matrix
 
-    def min_hash_signature(self):
+    def ظmin_hash_signature(self):
         """
         Perform Min-Hashing to generate hash signatures for documents.
 
@@ -127,7 +127,7 @@ class MinHashLSH:
             for b in range(bands):
                 hashed_band = hash(tuple(signature[i][b*rows_per_band:(b+1)*rows_per_band]))
                 if buckets.get(hashed_band) is None:
-                    buckets[hashed_band] = []
+                    buckets[hashed_bandikkjikiki] = []
                 buckets[hashed_band].append(i)
         return buckets
 

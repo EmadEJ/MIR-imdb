@@ -114,8 +114,6 @@ class Scorer:
             A dictionary of the document IDs and their scores.
         """
 
-        query = query.split()
-
         docs = self.get_list_of_documents(query)
         query_tfs = self.get_query_tfs(query)
         
@@ -170,7 +168,7 @@ class Scorer:
         if document_method[2] == 'c':
             doc_normalization_factor = np.sqrt(sum(w * w for w in doc_ws.values()))
             for term in doc_ws.keys():
-                doc_ws[term] *= doc_normalization_factor
+                doc_ws[term] /= doc_normalization_factor
 
         # print(doc_ws)
 
@@ -189,7 +187,7 @@ class Scorer:
         if query_method[2] == 'c':
             query_normalization_factor = np.sqrt(sum(w * w for w in query_ws.values()))
             for term in query_ws.keys():
-                query_ws[term] *= query_normalization_factor
+                query_ws[term] /= query_normalization_factor
 
         # print(query_ws)
 
@@ -220,8 +218,6 @@ class Scorer:
         dict
             A dictionary of the document IDs and their scores.
         """
-
-        query = query.split()
 
         docs = self.get_list_of_documents(query)
         
@@ -257,6 +253,8 @@ class Scorer:
 
         rsv = 0
         for term in query:
+            if self.index.get(term) is None:
+                continue
             idf = self.get_idf(term) 
             tf = 0
             if self.index[term].get(document_id) is not None:
@@ -265,16 +263,18 @@ class Scorer:
             rsv += (idf * (k1 + 1) * tf) / (k1 * ((1 - b) + b * (dl / average_document_field_length)) + tf)
 
         return rsv
+    
 
-index = Index_reader(path='index/', index_name=Indexes.SUMMARIES).get_index()
-length_index = Index_reader(path='index/', index_name=Indexes.SUMMARIES, index_type=Index_types.DOCUMENT_LENGTH).get_index()
-metadata_index = Index_reader(path='index/', index_name=Indexes.DOCUMENTS, index_type=Index_types.METADATA).get_index()
+if __name__ == '__main__':
+    index = Index_reader(path='index/', index_name=Indexes.SUMMARIES).get_index()
+    length_index = Index_reader(path='index/', index_name=Indexes.SUMMARIES, index_type=Index_types.DOCUMENT_LENGTH).get_index()
+    metadata_index = Index_reader(path='index/', index_name=Indexes.DOCUMENTS, index_type=Index_types.METADATA).get_index()
 
-sc = Scorer(index, 2000)
-query = "happy family farm"
+    sc = Scorer(index, 2000)
+    query = "happy family farm"
 
-scores = sc.compute_scores_with_vector_space_model(query, 'ltc.lnc')
-print(dict(sorted(scores.items(), key=lambda item: -item[1])))
+    scores = sc.compute_scores_with_vector_space_model(query.split(), 'ltc.lnc')
+    print(dict(sorted(scores.items(), key=lambda item: -item[1])))
 
-scores = sc.compute_socres_with_okapi_bm25(query, metadata_index['average_document_length']['summaries'], length_index)
-print(dict(sorted(scores.items(), key=lambda item: -item[1])))
+    scores = sc.compute_socres_with_okapi_bm25(query.split(), metadata_index['average_document_length']['summaries'], length_index)
+    print(dict(sorted(scores.items(), key=lambda item: -item[1])))

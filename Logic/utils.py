@@ -2,10 +2,14 @@ from typing import Dict, List
 from core.search import SearchEngine
 from core.spell_correction import SpellCorrection
 from core.snippet import Snippet
-from core.indexes_enum import Indexes, Index_types
+from core.indexer.indexes_enum import Indexes, Index_types
 import json
 
-movies_dataset = None  # TODO
+movies_dataset = {}
+with open("IMDB_crawled.json", "r") as FILE:
+    documents = json.load(FILE)
+for doc in documents:
+    movies_dataset[doc['id']] = doc
 search_engine = SearchEngine()
 
 
@@ -61,7 +65,11 @@ def search(
     list
     Retrieved documents with snippet
     """
-    weights = ...  # TODO
+    weights = {
+        Indexes.STARS: weights[0],
+        Indexes.STARS: weights[1],
+        Indexes.STARS: weights[2],
+    }
     return search_engine.search(
         query, method, weights, max_results=max_result_count, safe_ranking=True
     )
