@@ -41,7 +41,7 @@ class DocumentLengthsIndex:
         """
         current_dict = {}
         for id, doc in self.documents_index.items():
-            current_dict[id] = len(doc[where])
+            current_dict[id] = sum(len(v.split()) for v in doc[where])
         return current_dict
     
     def store_document_lengths_index(self, path , index_name):

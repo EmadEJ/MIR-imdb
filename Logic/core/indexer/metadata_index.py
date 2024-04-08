@@ -28,7 +28,7 @@ class Metadata_index:
         Creates the metadata index.
         """
         metadata_index = {}
-        metadata_index['averge_document_length'] = {
+        metadata_index['average_document_length'] = {
             'stars': self.get_average_document_field_length('stars'),
             'genres': self.get_average_document_field_length('genres'),
             'summaries': self.get_average_document_field_length('summaries')
@@ -47,10 +47,10 @@ class Metadata_index:
             The field to get the document lengths for.
         """
 
-        sum = 0
+        sm = 0
         for _, doc in self.documents.items():
-            sum += len(doc[where])
-        return sum / len(self.documents)
+            sm += sum(len(v.split()) for v in doc[where])
+        return sm / len(self.documents)
 
     def store_metadata_index(self, path):
         """
