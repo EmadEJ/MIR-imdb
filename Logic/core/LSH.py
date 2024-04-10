@@ -76,7 +76,7 @@ class MinHashLSH:
 
         return matrix
 
-    def ظmin_hash_signature(self):
+    def min_hash_signature(self):
         """
         Perform Min-Hashing to generate hash signatures for documents.
 
@@ -96,6 +96,7 @@ class MinHashLSH:
         matrix = np.full((len(self.documents), self.num_hashes), np.inf)
 
         for i, doc in enumerate(self.documents):
+            print("signature for", i)
             doc_shingles = self.shingle_document(doc)
             for j, seed in enumerate(seeds):
                 for shingle in doc_shingles:
@@ -127,7 +128,7 @@ class MinHashLSH:
             for b in range(bands):
                 hashed_band = hash(tuple(signature[i][b*rows_per_band:(b+1)*rows_per_band]))
                 if buckets.get(hashed_band) is None:
-                    buckets[hashed_bandikkjikiki] = []
+                    buckets[hashed_band] = []
                 buckets[hashed_band].append(i)
         return buckets
 
@@ -209,22 +210,27 @@ class MinHashLSH:
                         correct_near_duplicates += 1
 
         # a good score is around 0.8
-        print(f"found {len(all_combs)} similar pairs")
+        print(f"found {len(set(all_combs))} similar pairs")
         print("detected pairs:", set(all_combs))
 
-        print(correct_near_duplicates, all_near_duplicates)
         print("your final score in near duplicate detection:", correct_near_duplicates / all_near_duplicates)
+        return set(all_combs)
 
-with open("Logic/core/LSHFakeData.json", 'r') as FILE:
-    fake_documents = json.load(FILE)
+if __name__ == '__main__':
+    with open("Logic/core/LSHFakeData.json", 'r') as FILE:
+        fake_documents = json.load(FILE)
 
-with open("IMDB_crawled.json", "r") as FILE:
-    all_documents = json.load(FILE)
+    with open("IMDB_crawled.json", "r") as FILE:
+        all_documents = json.load(FILE)
 
-all_documents.extend(fake_documents)
-doc_strings = [' '.join(doc['summaries']) for doc in all_documents if len(doc['summaries']) > 0]
+    all_documents.extend(fake_documents)
+    print(len(all_documents))
+    all_documents = list({v['id']:v for v in all_documents}.values())
+    print(len(all_documents))
+    doc_strings = [' '.join(doc['summaries']) for doc in all_documents if len(doc['summaries']) > 0]
 
-lsh = MinHashLSH(doc_strings, 100)
-lsh.jaccard_similarity_test(lsh.perform_lsh(), doc_strings)
+    lsh = MinHashLSH(doc_strings, 100)
+    similars = lsh.jaccard_similarity_test(lsh.perform_lsh(), doc_strings)
+    for pair in similars:
+        print(all_documents[pair[0]]['id'], all_documents[pair[1]]['id'])
 
-# print(lsh.lsh_buckets(lsh.min_hash_signature(), 5, 2))

@@ -1,0 +1,53 @@
+{
+    "os": "Windows-10-10.0.19045-SP0",
+    "python": "3.10.7",
+    "heartbeatAt": "2024-04-10T13:33:22.419959",
+    "startedAt": "2024-04-10T13:33:19.618859",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "e:\\University\\Term 6\\Modern Information Retreival\\Project\\MIR-imdb\\Logic\\core\\utility\\evaluation.py",
+    "codePathLocal": "Logic\\core\\utility\\evaluation.py",
+    "codePath": "Logic\\core\\utility\\evaluation.py",
+    "git": {
+        "remote": "https://github.com/EmadEJ/MIR-imdb.git",
+        "commit": "de0178c7e3f61d8346bdd99c8a0d173a5cfde94c"
+    },
+    "email": "s.emad.emamjomeh@gmail.com",
+    "root": "E:/University/Term 6/Modern Information Retreival/Project/MIR-imdb",
+    "host": "DESKTOP-2DU0BBP",
+    "username": "RSKALA",
+    "executable": "C:\\Users\\RSKALA\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 2900.0,
+        "min": 0.0,
+        "max": 2900.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2900.0,
+            "min": 0.0,
+            "max": 2900.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 310.50683212280273,
+            "used": 78.24321365356445
+        }
+    },
+    "gpu": "NVIDIA GeForce GTX 1660 Ti",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce GTX 1660 Ti",
+            "memory_total": 6442450944
+        }
+    ],
+    "memory": {
+        "total": 15.872379302978516
+    }
+}

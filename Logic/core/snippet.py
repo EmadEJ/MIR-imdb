@@ -25,7 +25,7 @@ class Snippet:
             The query without stop words.
         """
 
-        stopwords = ['a', 'an', 'the', 'this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
+        stopwords = ['a', 'an', 'in', 'the', 'this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
 
         return ' '.join([word for word in query.split() if word not in stopwords])
 

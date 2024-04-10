@@ -165,4 +165,6 @@ if __name__ == "__main__":
 
     sc = SpellCorrection(doc_strings)
 
+    query = "The amaizng soectacular unbeleivable astonishing alright breakaing"
+    print(query)
     print(sc.spell_check("The amazing soectacular unbeleivable astonishing alright breakaing"))

@@ -340,34 +340,34 @@ class Index:
             print('Indexing is wrong')
             return False
 
-# TODO: Run the class with needed parameters, then run check methods and finally report the results of check methods
-with open("preprocessed_docs.json", 'r') as FILE:
-    docs = json.load(FILE)
+if __name__ == '__main__':
+    # TODO: Run the class with needed parameters, then run check methods and finally report the results of check methods
+    with open("preprocessed_docs.json", 'r') as FILE:
+        docs = json.load(FILE)
 
-index = Index(docs)
+    index = Index(docs)
 
-# Checks:
+    # Checks:
 
-index.check_add_remove_is_correct()
+    index.check_add_remove_is_correct()
 
-index.store_index('index/', 'documents')
-print("documents load correctness:", index.check_if_index_loaded_correctly('documents', index.load_index('index/documents_index.json')))
-index.store_index('index/', 'stars')
-print("stars load correctness:", index.check_if_index_loaded_correctly('stars', index.load_index('index/stars_index.json')))
-index.store_index('index/', 'genres')
-print("genres load correctness:", index.check_if_index_loaded_correctly('genres', index.load_index('index/genres_index.json')))
-index.store_index('index/', 'summaries')
-print("summaries load correctness:", index.check_if_index_loaded_correctly('summaries', index.load_index('index/summaries_index.json')))
-index.store_index('index/')
+    index.store_index('index/', 'documents')
+    print("documents load correctness:", index.check_if_index_loaded_correctly('documents', index.load_index('index/documents_index.json')))
+    index.store_index('index/', 'stars')
+    print("stars load correctness:", index.check_if_index_loaded_correctly('stars', index.load_index('index/stars_index.json')))
+    index.store_index('index/', 'genres')
+    print("genres load correctness:", index.check_if_index_loaded_correctly('genres', index.load_index('index/genres_index.json')))
+    index.store_index('index/', 'summaries')
+    print("summaries load correctness:", index.check_if_index_loaded_correctly('summaries', index.load_index('index/summaries_index.json')))
 
-print("\033[93m### stars index evaulation:\033[0m")
-print(index.check_if_indexing_is_good('stars', 'green'))
-print(index.check_if_indexing_is_good('stars', 'gyllenhaal'))
+    print("\033[93m### stars index evaulation:\033[0m")
+    print(index.check_if_indexing_is_good('stars', 'green'))
+    print(index.check_if_indexing_is_good('stars', 'gyllenhaal'))
 
-print("\033[93m### genres index evaulation:\033[0m")
-print(index.check_if_indexing_is_good('genres', 'sci-fi'))
-print(index.check_if_indexing_is_good('genres', 'animation'))
+    print("\033[93m### genres index evaulation:\033[0m")
+    print(index.check_if_indexing_is_good('genres', 'sci-fi'))
+    print(index.check_if_indexing_is_good('genres', 'animation'))
 
-print("\033[93m### summaries index evaulation:\033[0m")
-print(index.check_if_indexing_is_good('summaries', 'john'))
-print(index.check_if_indexing_is_good('summaries', 'good'))
+    print("\033[93m### summaries index evaulation:\033[0m")
+    print(index.check_if_indexing_is_good('summaries', 'john'))
+    print(index.check_if_indexing_is_good('summaries', 'good'))

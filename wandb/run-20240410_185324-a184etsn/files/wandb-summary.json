@@ -1,0 +1,1 @@
+{"Precision": 0.4666666666666666, "Recall": 1.4, "F1 Score": 0.4666666666666666, "Mean Average Precision": 0.6433333333333332, "Normalized Discounted Cumulative Gain": 263.6333072229436, "Mean Reciprocal Rank": 0.8333333333333334, "_timestamp": 1712762610.179178, "_runtime": 5.572774887084961, "_step": 0, "_wandb": {"runtime": 0}}
