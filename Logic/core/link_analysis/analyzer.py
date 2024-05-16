@@ -1,6 +1,5 @@
-from .graph import LinkGraph
-from ..indexer.indexes_enum import Indexes
-from ..indexer.index_reader import Index_reader
+from graph import LinkGraph
+import json
 
 class LinkAnalyzer:
     def __init__(self, root_set):
@@ -30,9 +29,14 @@ class LinkAnalyzer:
         This function has no parameters. You can use self to get or change attributes
         """
         for movie in self.root_set:
-            #TODO
-            pass
-
+            self.hubs.append(movie['title'])
+            self.graph.add_node(movie['title'])
+            for star in movie['stars']:
+                if star not in self.authorities:
+                    self.graph.add_node(star)
+                    self.authorities.append(star)
+                self.graph.add_edge(movie['title'], star)
+            
     def expand_graph(self, corpus):
         """
         expand hubs, authorities and graph using given corpus
@@ -42,6 +46,7 @@ class LinkAnalyzer:
         corpus: list
             A list of movie dictionaries with the following keys:
             "id": A unique ID for the movie
+            "title": string of movie title
             "stars": A list of movie star names
 
         Note
@@ -50,8 +55,14 @@ class LinkAnalyzer:
         and refer to the nodes in the root set to the graph and to the list of hubs and authorities.
         """
         for movie in corpus:
-            #TODO
-            pass
+            if movie['title'] in self.hubs:
+                continue
+            for star in movie['stars']:
+                if star in self.authorities:
+                    if movie['title'] not in self.hubs:
+                        self.hubs.append(movie['title'])
+                        self.graph.add_node(movie['title'])
+                    self.graph.add_edge(movie['title'], star)
 
     def hits(self, num_iteration=5, max_result=10):
         """
@@ -71,21 +82,61 @@ class LinkAnalyzer:
         list
             List of names of 10 movies with the most scores obtained by Hits algorithm in descending order
         """
-        a_s = []
-        h_s = []
+        h_s = {}
+        a_s = {}
 
-        #TODO
+        for h in self.hubs:
+            h_s[h] = 1
+        for a in self.authorities:
+            a_s[a] = 1
 
-        return a_s, h_s
+        for _ in range(num_iteration):
+            total_h = 0
+            for h in self.hubs:
+                seccessors = self.graph.get_successors(h)
+                h_s[h] = 0
+                for successor in seccessors:
+                    h_s[h] += a_s[successor]
+                total_h += h_s[h]
+
+            total_a = 0
+            for a in self.authorities:
+                predecessors = self.graph.get_predecessors(a)
+                a_s[a] = 0
+                for predecessor in predecessors:
+                    a_s[a] += h_s[predecessor]
+                total_a += a_s[a]
+
+            for h in self.hubs:
+                h_s[h] /= total_h
+            for a in self.authorities:
+                a_s[a] /= total_a
+
+        a_s = sorted(a_s.items(), key=lambda x: x[1], reverse=True)
+        h_s = sorted(h_s.items(), key=lambda x: x[1], reverse=True)
+
+        # print(a_s)
+        # print(h_s)
+
+        return a_s[:max_result], h_s[:max_result]
 
 if __name__ == "__main__":
     # You can use this section to run and test the results of your link analyzer
+    with open('preprocessed_docs.json', 'r') as FILE:
+        docs = json.load(FILE)
     corpus = []    # TODO: it shoud be your crawled data
-    root_set = []   # TODO: it shoud be a subset of your corpus
+    for doc in docs:
+        movie = {}
+        movie['id'] = doc['id']
+        movie['title'] = doc['title']
+        movie['stars'] = doc['stars']
+        corpus.append(movie)
+    root_set = [movie for movie in corpus if 'Avengers:' in movie['title'].split()] 
+    print(root_set)
 
     analyzer = LinkAnalyzer(root_set=root_set)
     analyzer.expand_graph(corpus=corpus)
-    actors, movies = analyzer.hits(max_result=5)
+    actors, movies = analyzer.hits(max_result=5, num_iteration=100)
     print("Top Actors:")
     print(*actors, sep=' - ')
     print("Top Movies:")

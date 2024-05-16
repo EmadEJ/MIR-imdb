@@ -7,21 +7,16 @@ class LinkGraph:
     You can add or remove methods from it.
     """
     def __init__(self):
-        #TODO
-        pass
+        self.G = nx.DiGraph()
 
     def add_edge(self, u_of_edge, v_of_edge):
-        #TODO
-        pass
+        self.G.add_edge(u_of_edge, v_of_edge)
 
     def add_node(self, node_to_add):
-        #TODO
-        pass
+        self.G.add_node(node_to_add)
 
     def get_successors(self, node):
-        #TODO
-        pass
+        return list(self.G.successors(node))
 
     def get_predecessors(self, node):
-        #TODO
-        pass
+        return list(self.G.predecessors(node))

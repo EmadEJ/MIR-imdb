@@ -1,4 +1,4 @@
-
+ 
 # Logic Module
 This module contains files and classes responsible for doing the main tasks of the project. The explanations of each class and what it does is provided below (and will be completed as the project goes on).
 
