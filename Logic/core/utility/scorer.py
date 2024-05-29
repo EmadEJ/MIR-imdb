@@ -1,6 +1,9 @@
 import numpy as np
-from .indexer.index_reader import Index_reader
-from .indexer.indexes_enum import Indexes,Index_types
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join('Logic', 'core')))
+from indexer.index_reader import Index_reader
+from indexer.indexes_enum import Indexes,Index_types
 
 
 class Scorer:
@@ -273,6 +276,109 @@ class Scorer:
             rsv += (idf * (k1 + 1) * tf) / (k1 * ((1 - b) + b * (dl / average_document_field_length)) + tf)
 
         return rsv
+    
+    
+    def compute_scores_with_unigram_model(
+        self, query, smoothing_method, document_lengths=None, alpha=0.5, lamda=0.5
+    ):
+        """
+        Calculates the scores for each document based on the unigram model.
+
+        Parameters
+        ----------
+        query : List[str]
+            The query to search for.
+        smoothing_method : str (bayes | naive | mixture)
+            The method used for smoothing the probabilities in the unigram model.
+        document_lengths : dict
+            A dictionary of the document lengths. The keys are the document IDs, and the values are
+            the document's length in that field.
+        alpha : float, optional
+            The parameter used in bayesian smoothing method. Defaults to 0.5.
+        lamda : float, optional
+            The parameter used in some smoothing methods to balance between the document
+            probability and the collection probability. Defaults to 0.5.
+
+        Returns
+        -------
+        float
+            A dictionary of the document IDs and their scores.
+        """
+
+        query_tfs = self.get_query_tfs(query)
+        
+        total_tfs = {}
+        for word in query:
+            total_tfs[word] = 0
+            if self.index.get(word) is None:
+                continue
+            for doc, cnt in self.index[word].items():
+                total_tfs[word] += cnt
+
+        total_length = 0
+        for doc_id, document_length in document_lengths.items():
+            total_length += document_length
+
+        docs = self.get_list_of_documents(query)
+
+        print(query_tfs)
+        print(total_tfs)
+        print(total_length)
+
+        doc_scores = {}
+        for doc_id in docs:
+            doc_scores[doc_id] = self.compute_score_with_unigram_model(
+                query, doc_id, query_tfs, total_tfs, total_length, smoothing_method, document_lengths, alpha, lamda) 
+        
+        return doc_scores
+
+    def compute_score_with_unigram_model(
+        self, query, document_id, query_tfs, total_tfs, total_length, smoothing_method, document_lengths, alpha, lamda
+    ):
+        """
+        Calculates the scores for each document based on the unigram model.
+
+        Parameters
+        ----------
+        query : List[str]
+            The query to search for.
+        document_id : str
+            The document to calculate the score for.
+        smoothing_method : str (bayes | naive | mixture)
+            The method used for smoothing the probabilities in the unigram model.
+        document_lengths : dict
+            A dictionary of the document lengths. The keys are the document IDs, and the values are
+            the document's length in that field.
+        alpha : float, optional
+            The parameter used in bayesian smoothing method. Defaults to 0.5.
+        lamda : float, optional
+            The parameter used in some smoothing methods to balance between the document
+            probability and the collection probability. Defaults to 0.5.
+
+        Returns
+        -------
+        float
+            The Unigram score of the document for the query.
+        """
+        # print(query, document_id)
+        total_score = 1
+        for term in query:
+            if self.index.get(term) is None:
+                continue
+            tf = 0
+            if self.index[term].get(document_id) is not None:
+                tf = self.index[term][document_id]
+            if smoothing_method == 'naive':
+                p = tf / document_lengths[document_id]
+            if smoothing_method == 'bayes':
+                p = (tf + alpha * (total_tfs[term] / total_length)) / (document_lengths[document_id] + alpha)
+            if smoothing_method == 'mixture':
+                p = lamda * (tf / document_lengths[document_id]) + (1 - lamda) * (total_tfs[term] / total_length) 
+            # print(term, tf, p)
+
+            total_score *= p ** query_tfs[term]                
+
+        return total_score
     
 
 if __name__ == '__main__':

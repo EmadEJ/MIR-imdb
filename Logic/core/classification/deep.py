@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, TensorDataset
 from tqdm import tqdm
 
 from .data_loader import ReviewLoader
@@ -12,8 +12,8 @@ from .basic_classifier import BasicClassifier
 
 class ReviewDataSet(Dataset):
     def __init__(self, embeddings, labels):
-        self.embeddings = torch.FloatTensor(embeddings)
-        self.labels = torch.LongTensor(labels)
+        self.embeddings = torch.FloatTensor(np.array(embeddings))
+        self.labels = torch.LongTensor(np.array(labels))
 
         if len(self.embeddings) != len(self.labels):
             raise Exception("Embddings and Labels must have the same length")
@@ -68,7 +68,7 @@ class DeepModelClassifier(BasicClassifier):
         self.best_model = self.model.state_dict()
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
-        self.device = 'mps' if torch.backends.mps.is_available else 'cpu'
+        self.device = 'mps' if torch.backends.mps.is_available() else 'cpu'
         self.device = 'cuda' if torch.cuda.is_available() else self.device
         self.model.to(self.device)
         print(f"Using device: {self.device}")
@@ -87,6 +87,29 @@ class DeepModelClassifier(BasicClassifier):
         -------
         self
         """
+        dataset = ReviewDataSet(x, y)
+        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+        for epoch in range(self.num_epochs):
+            self.model.train()
+            avg_loss = 0
+
+            for i, data in enumerate(dataloader, 0):
+                X, y = data
+
+                self.optimizer.zero_grad()
+
+                pred = self.model(X)
+                loss = self.criterion(pred, y)
+                loss.backward()
+                self.optimizer.step()
+
+                avg_loss += loss.item()
+                if i % 2000 == 1999:
+                    print(f'[{epoch}, {(i + 1):5d}] loss: {avg_loss / 2000:.3f}')
+                    avg_loss = 0
+            print(f"Epoch {epoch + 1}/{self.num_epochs}, Loss: {avg_loss / len(dataloader)}")
+                
         return self
 
     def predict(self, x):
@@ -101,8 +124,18 @@ class DeepModelClassifier(BasicClassifier):
         predicted_labels: list
             The predicted labels
         """
-        pass
+        self.model.eval()
+        dataset = ReviewDataSet(x, np.zeros(len(x)))
+        dataloader = DataLoader(dataset, batch_size=self.batch_size)
 
+        with torch.no_grad():
+            preds = []
+            for X, _ in dataloader:
+                pred = self.model(X)
+                _, pred = torch.max(pred, 1)
+                preds.extend(pred.cpu().numpy())
+
+        return np.array(preds)
     def _eval_epoch(self, dataloader: torch.utils.data.DataLoader, model):
         """
         Evaluate the model on the given dataloader. used for validation and test
@@ -120,7 +153,25 @@ class DeepModelClassifier(BasicClassifier):
         f1_score_macro: float
             The f1 score on the given dataloader
         """
-        pass
+        self.model.eval()
+        preds = []
+        true_y = []
+        avg_loss = 0
+
+        with torch.no_grad():
+            for X, y in dataloader:
+
+                pred = self.model(X)
+                _, pred = torch.max(pred, 1)
+                loss = self.criterion(pred, y)
+                avg_loss += loss.item()
+
+                preds.extend(pred.cpu().numpy())
+                true_y.extend(y.cpu().numpy())
+
+        f1 = f1_score(true_y, preds)
+        return avg_loss / len(dataloader), preds, true_y, f1
+
 
     def set_test_dataloader(self, X_test, y_test):
         """
@@ -136,7 +187,9 @@ class DeepModelClassifier(BasicClassifier):
         self
             Returns self
         """
-        pass
+        test_dataset = ReviewDataSet(X_test, y_test)
+        self.test_loader = Dataset(test_dataset)
+        return self
 
     def prediction_report(self, x, y):
         """
@@ -152,11 +205,52 @@ class DeepModelClassifier(BasicClassifier):
         str
             The classification report
         """
-        pass
+        pred = self.predict(x)
+        return classification_report(y, pred)
 
 # F1 Accuracy : 79%
 if __name__ == '__main__':
     """
     Fit the model with the training data and predict the test data, then print the classification report
     """
-    pass
+    loader = ReviewLoader('IMDB Dataset.csv')
+    loader.load_data()
+    loader.get_embeddings()
+    X_train, X_test, y_train, y_test = loader.split_data()
+    for i in range(len(y_train)):
+        y_train[i] = (y_train[i] + 1) / 2
+    for i in range(len(y_test)):
+        y_test[i] = (y_test[i] + 1) / 2
+    
+    model = DeepModelClassifier(len(X_train[0]), 2, 128, num_epochs=20)
+    model.fit(X_train, y_train) 
+    print(model.prediction_report(X_test, y_test)) 
+
+# Epoch 1/20, Loss: 0.5451983192477363
+# Epoch 2/20, Loss: 0.5052756700462426
+# Epoch 3/20, Loss: 0.4929236109835652
+# Epoch 4/20, Loss: 0.4882321340588335
+# Epoch 5/20, Loss: 0.4864682413328189
+# Epoch 6/20, Loss: 0.4869736005513432
+# Epoch 7/20, Loss: 0.48272663897599655
+# Epoch 8/20, Loss: 0.48215121030807495
+# Epoch 9/20, Loss: 0.4823711341181502
+# Epoch 10/20, Loss: 0.48073890167303357
+# Epoch 11/20, Loss: 0.4811637126409208
+# Epoch 12/20, Loss: 0.48306315956405177
+# Epoch 13/20, Loss: 0.4785977539163047
+# Epoch 14/20, Loss: 0.47775266526606136
+# Epoch 15/20, Loss: 0.4841759774250725
+# Epoch 16/20, Loss: 0.4809332119580656
+# Epoch 17/20, Loss: 0.4780088289858053
+# Epoch 18/20, Loss: 0.47525904648981915
+# Epoch 19/20, Loss: 0.4796030829889706
+# Epoch 20/20, Loss: 0.47506510611540215
+#               precision    recall  f1-score   support
+
+#          0.0       0.80      0.88      0.84      5018
+#          1.0       0.87      0.78      0.82      4982
+
+#     accuracy                           0.83     10000
+#    macro avg       0.83      0.83      0.83     10000
+# weighted avg       0.83      0.83      0.83     10000

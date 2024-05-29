@@ -1,7 +1,7 @@
 import pandas as pd
 from tqdm import tqdm
 from sklearn.preprocessing import LabelEncoder
-
+import json
 
 class FastTextDataLoader:
     """
@@ -20,7 +20,6 @@ class FastTextDataLoader:
             The path to the file containing movie information.
         """
         self.file_path = file_path
-        pass
 
     def read_data_to_df(self):
         """
@@ -34,7 +33,12 @@ class FastTextDataLoader:
         ----------
             pd.DataFrame: A pandas DataFrame containing movie information (synopses, summaries, reviews, titles, genres).
         """
-        pass
+        with open(self.file_path, "r") as FILE:
+            data = json.load(FILE)
+        df = pd.DataFrame(columns=['title', 'synopsis', 'summaries', 'reviews', 'genres'])
+        for idx, movie in enumerate(data):
+            df.loc[idx] = [movie['title'], ' '.join(movie['synopsis']), ' '.join(movie['summaries']), ' '.join([review[0] for review in movie['reviews']]), (movie['genres'][0] if len(movie['genres']) > 0 else '')]
+        return df
 
     def create_train_data(self):
         """
@@ -43,6 +47,13 @@ class FastTextDataLoader:
         Returns:
             tuple: A tuple containing two NumPy arrays: X (preprocessed text data) and y (encoded genre labels).
         """
-        pass
+        df = self.read_data_to_df()
+        X = []
+        y = []
+        for _, row in df.iterrows():
+            X.append(' '.join([row['title'], row['synopsis'], row['summaries'], row['reviews']]))
+            y.append(row['genres'])
+        
+        return X, y
 
 

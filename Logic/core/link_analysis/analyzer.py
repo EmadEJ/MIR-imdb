@@ -1,4 +1,4 @@
-from graph import LinkGraph
+from .graph import LinkGraph
 import json
 
 class LinkAnalyzer:
@@ -29,13 +29,13 @@ class LinkAnalyzer:
         This function has no parameters. You can use self to get or change attributes
         """
         for movie in self.root_set:
-            self.hubs.append(movie['title'])
-            self.graph.add_node(movie['title'])
+            self.hubs.append(movie['id'])
+            self.graph.add_node(movie['id'])
             for star in movie['stars']:
                 if star not in self.authorities:
                     self.graph.add_node(star)
                     self.authorities.append(star)
-                self.graph.add_edge(movie['title'], star)
+                self.graph.add_edge(movie['id'], star)
             
     def expand_graph(self, corpus):
         """
@@ -55,14 +55,14 @@ class LinkAnalyzer:
         and refer to the nodes in the root set to the graph and to the list of hubs and authorities.
         """
         for movie in corpus:
-            if movie['title'] in self.hubs:
+            if movie['id'] in self.hubs:
                 continue
             for star in movie['stars']:
                 if star in self.authorities:
-                    if movie['title'] not in self.hubs:
-                        self.hubs.append(movie['title'])
-                        self.graph.add_node(movie['title'])
-                    self.graph.add_edge(movie['title'], star)
+                    if movie['id'] not in self.hubs:
+                        self.hubs.append(movie['id'])
+                        self.graph.add_node(movie['id'])
+                    self.graph.add_edge(movie['id'], star)
 
     def hits(self, num_iteration=5, max_result=10):
         """
@@ -115,6 +115,8 @@ class LinkAnalyzer:
         a_s = sorted(a_s.items(), key=lambda x: x[1], reverse=True)
         h_s = sorted(h_s.items(), key=lambda x: x[1], reverse=True)
 
+        a_s = [x[0] for x in a_s]
+        h_s = [x[0] for x in h_s]
         # print(a_s)
         # print(h_s)
 
@@ -136,7 +138,7 @@ if __name__ == "__main__":
 
     analyzer = LinkAnalyzer(root_set=root_set)
     analyzer.expand_graph(corpus=corpus)
-    actors, movies = analyzer.hits(max_result=5, num_iteration=100)
+    actors, movies = analyzer.hits(max_result=10, num_iteration=100)
     print("Top Actors:")
     print(*actors, sep=' - ')
     print("Top Movies:")

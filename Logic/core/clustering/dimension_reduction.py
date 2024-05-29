@@ -1,14 +1,18 @@
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-
+import wandb
+import matplotlib.pyplot as plt
+import wandb.plot
+import wandb.plot
+import wandb.plots
 
 class DimensionReduction:
 
-    def __init__(self):
-        self.pca = PCA()
+    def __init__(self, n_components):
+        self.pca = PCA(n_components=n_components)
         self.tsne_2d = TSNE(n_components=2, random_state=42)
 
-    def pca_reduce_dimension(self, embeddings, n_components):
+    def pca_reduce_dimension(self, embeddings):
         """
         Performs dimensional reduction using PCA with n components left behind.
 
@@ -21,7 +25,7 @@ class DimensionReduction:
         -------
             list: A list of reduced embeddings.
         """
-        pass
+        return self.pca.fit_transform(embeddings)
 
     def convert_to_2d_tsne(self, emb_vecs):
         """
@@ -35,7 +39,7 @@ class DimensionReduction:
         --------
             list: A list of 2D vectors.
         """
-        pass
+        return self.tsne_2d.fit_transform(emb_vecs)
 
     def wandb_plot_2d_tsne(self, data, project_name, run_name):
         """ This function performs t-SNE (t-Distributed Stochastic Neighbor Embedding) dimensionality reduction on the input data and visualizes the resulting 2D embeddings by logging a scatter plot to Weights & Biases (wandb).
@@ -67,18 +71,19 @@ class DimensionReduction:
         run = wandb.init(project=project_name, name=run_name)
 
         # Perform t-SNE dimensionality reduction
-        # TODO
+        data = self.convert_to_2d_tsne(data)
 
         # Plot the t-SNE embeddings
-        # TODO
+        x = [data[i][0] for i in range(len(data))]
+        y = [data[i][1] for i in range(len(data))]
+        plt.scatter(x, y)
 
         # Log the plot to wandb
         wandb.log({"t-SNE 2D Embeddings": wandb.Image(plt)})
+        plt.show()
 
         # Close the plot display window if needed (optional)
-        # TODO
-
-    import matplotlib.pyplot as plt
+        plt.close()
 
     def wandb_plot_explained_variance_by_components(self, data, project_name, run_name):
         """
@@ -108,16 +113,19 @@ class DimensionReduction:
         """
 
         # Fit PCA and compute cumulative explained variance ratio
-        # TODO
-
-        # Create the plot
-        # TODO
+        self.pca_reduce_dimension(data)
+        explained_variance = self.pca.explained_variance_ratio_
 
         # Initialize wandb
         run = wandb.init(project=project_name, name=run_name)
 
+        # Create the plot
+        plt.plot(explained_variance, label="explained_variance")
+        plt.legend()
+
         # Log the plot to wandb
         wandb.log({"Explained Variance": wandb.Image(plt)})
+        plt.show()
 
         # Close the plot display window if needed (optional)
         plt.close()

@@ -3,6 +3,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(sys.path[0], '../..'))
+sys.path.append(os.path.abspath('.'))
 # sys.path.append("E:\University\Term 6\Modern Information Retreival\Project\MIR-imdb")
 from Logic import utils
 import time
@@ -25,7 +26,7 @@ class color(Enum):
 
 
 def get_top_x_movies_by_rank(x: int, results: list):
-    path = "../Logic/core/index/"  # Link to the index folder
+    path = "index/"  # Link to the index folder
     document_index = Index_reader(path, Indexes.DOCUMENTS)
     corpus = []
     root_set = []
@@ -143,7 +144,7 @@ def search_handling(
         return
 
     if search_button:
-        corrected_query = utils.correct_text(search_term, utils.all_documents)
+        corrected_query = utils.correct_text(search_term, utils.documents)
 
         if corrected_query != search_term:
             st.warning(f"Your search terms were corrected to: {corrected_query}")

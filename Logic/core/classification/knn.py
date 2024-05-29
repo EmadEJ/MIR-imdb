@@ -28,7 +28,9 @@ class KnnClassifier(BasicClassifier):
         self
             Returns self as a classifier
         """
-        pass
+        self.points = x
+        self.labels = y
+        return self
 
     def predict(self, x):
         """
@@ -42,7 +44,19 @@ class KnnClassifier(BasicClassifier):
             Return the predicted class for each doc
             with the highest probability (argmax)
         """
-        pass
+        preds = []
+        for doc in tqdm(x, "knn"):
+            distances = np.array([np.linalg.norm(doc - point) for point in self.points])
+            indexes = np.argsort(distances)
+            cnt = 0
+            for idx in indexes[:self.k]:
+                if self.labels[idx] == 1:
+                    cnt += 1
+            if cnt > self.k / 2:
+                preds.append(1)
+            else:
+                preds.append(-1)
+        return np.array(preds)
 
     def prediction_report(self, x, y):
         """
@@ -57,12 +71,20 @@ class KnnClassifier(BasicClassifier):
         str
             Return the classification report
         """
-        pass
+        preds = self.predict(x)
+        return classification_report(y, preds)
 
 
 # F1 Accuracy : 70%
+# my F1 Score: 76%
 if __name__ == '__main__':
     """
     Fit the model with the training data and predict the test data, then print the classification report
     """
-    pass
+    loader = ReviewLoader('IMDB Dataset.csv')
+    loader.load_data()
+    loader.get_embeddings()
+    X_train, X_test, y_train, y_test = loader.split_data()
+    knn = KnnClassifier(n_neighbors=11)
+    knn.fit(X_train, y_train)
+    print(knn.prediction_report(X_test, y_test))

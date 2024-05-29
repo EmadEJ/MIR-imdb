@@ -1,11 +1,11 @@
 import json
 import numpy as np
-from .preprocess import Preprocessor
-from .scorer import Scorer
-from .indexer.indexes_enum import Indexes, Index_types
-from .indexer.index_reader import Index_reader
-from .utility import Preprocessor, Scorer
-from .indexer import Indexes, Index_types, Index_reader
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join('Logic', 'core')))
+from indexer.indexes_enum import Indexes, Index_types
+from indexer.index_reader import Index_reader
+from utility import Preprocessor, Scorer
 
 
 class SearchEngine:
@@ -39,7 +39,7 @@ class SearchEngine:
         weights,
         safe_ranking=True,
         max_results=10,
-        smoothing_method=None,
+        smoothing_method='Naive',
         alpha=0.5,
         lamda=0.5,
     ):
@@ -74,6 +74,7 @@ class SearchEngine:
         """
         preprocessor = Preprocessor([query])
         query = preprocessor.preprocess()[0]
+        query = query.split()
 
         scores = {}
         if method == "unigram":
@@ -112,7 +113,7 @@ class SearchEngine:
         """
 
         all_docs = []
-        for field in scores:
+        for field in scores.keys():
             all_docs.extend(scores[field].keys())
         all_docs = list(set(all_docs))
         # print(all_docs)
@@ -146,8 +147,8 @@ class SearchEngine:
         for field in weights:
             scores[field] = {}
         for tier in ["first_tier", "second_tier", "third_tier"]:
-            for field in weights:
-                scorer = Scorer(self.tiered_index[field][tier], self.metadata_index['document_count'])
+            for idx, field in enumerate(weights.keys()):
+                scorer = Scorer(self.tiered_index[self.document_indexes[list(self.document_indexes.keys())[idx]]][tier], self.metadata_index['document_count'])
                 if method == 'OkapiBM25':
                     new_score = scorer.compute_socres_with_okapi_bm25(query, 
                                                                         self.metadata_index['average_document_length'][field.value],
@@ -172,8 +173,12 @@ class SearchEngine:
         scores : dict
             The scores of the documents.
         """
-        for field in weights:
-            scorer = Scorer(self.document_indexes[field], self.metadata_index['document_count'])
+        for idx, field in enumerate(weights.keys()):
+            print(self.document_indexes.keys())
+            print(field)
+            print(field == Indexes.STARS)
+            print(Indexes.STARS in self.document_indexes.keys())
+            scorer = Scorer(self.document_indexes[list(self.document_indexes.keys())[idx]], self.metadata_index['document_count'])
             if method == 'OkapiBM25':
                 scores[field] = scorer.compute_socres_with_okapi_bm25(query, 
                                                                       self.metadata_index['average_document_length'][field.value],
@@ -181,6 +186,37 @@ class SearchEngine:
             else:
                 scores[field] = scorer.compute_scores_with_vector_space_model(query, method)
 
+    def find_scores_with_unigram_model(self, query, smoothing_method, weights, scores, alpha=0.5, lamda=0.5):
+        """
+        Calculates the scores for each document based on the unigram model.
+
+        Parameters
+        ----------
+        query : str
+            The query to search for.
+        smoothing_method : str (bayes | naive | mixture)
+            The method used for smoothing the probabilities in the unigram model.
+        weights : dict
+            A dictionary mapping each field (e.g., 'stars', 'genres', 'summaries') to its weight in the final score. Fields with a weight of 0 are ignored.
+        scores : dict
+            The scores of the documents.
+        alpha : float, optional
+            The parameter used in bayesian smoothing method. Defaults to 0.5.
+        lamda : float, optional
+            The parameter used in some smoothing methods to balance between the document
+            probability and the collection probability. Defaults to 0.5.
+        """
+
+        for idx, field in enumerate(weights.keys()):
+            document_lengths = {}
+            the_index = self.document_indexes[list(self.document_indexes.keys())[idx]]
+            for _, postings in the_index.items():
+                for doc_id, cnt in postings.items():
+                    if document_lengths.get(doc_id) is None:
+                        document_lengths[doc_id] = 0
+                    document_lengths[doc_id] += cnt
+            scorer = Scorer(the_index, self.metadata_index['document_count'])
+            scores[field] = scorer.compute_scores_with_unigram_model(query, smoothing_method, document_lengths, alpha, lamda)
 
     def merge_scores(self, scores1, scores2):
         """
@@ -214,13 +250,14 @@ class SearchEngine:
 if __name__ == "__main__":
     search_engine = SearchEngine()
     query = "spider man in wonderland"
-    method = "lnc.ltc"
+    method = "unigram"
+    smoothing_method = 'mixture'
     weights = {
         Indexes.STARS: 1,
         Indexes.GENRES: 1,
         Indexes.SUMMARIES: 1
     }
-    result = search_engine.search(query, method, weights, safe_ranking=False)
+    result = search_engine.search(query, method, weights, safe_ranking=False, smoothing_method=smoothing_method)
 
     print(result)
 
