@@ -25,7 +25,7 @@ class Snippet:
             The query without stop words.
         """
 
-        stopwords = ['a', 'an', 'in', 'the', 'this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
+        stopwords = ['a', 'an', 'in', 'of', 'in', 'at', 'the', 'this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
 
         return ' '.join([word for word in query.split() if word not in stopwords])
 
@@ -55,45 +55,60 @@ class Snippet:
         query = self.remove_stop_words_from_query(query)
         query_words = query.split()
         doc = doc.lower()
+        doc = doc.replace(".", "")
+        doc = doc.replace("!", "")
+        doc = doc.replace("?", "")
+        doc = doc.replace("/", " ")
+        doc = doc.replace("-", " ")
+        doc = doc.replace(",", "")
+        doc = doc.replace("(", "")
+        doc = doc.replace(")", "")
         doc_words = doc.split()
 
-        indices = []
-        exacts = []
+        for idx, doc_word in enumerate(doc_words):
+            if doc_word in query_words:
+                doc_words[idx] = "***" + doc_word + "***"
 
-        for query_word in query_words:
-            if query_word not in doc_words:
-                not_exist_words.append(query_word)
+        return ' '.join(doc_words), []
+
+        #### good snippet
+        # indices = []
+        # exacts = []
+
+        # for query_word in query_words:
+        #     if query_word not in doc_words:
+        #         not_exist_words.append(query_word)
                     
-            else:
-                idx = doc_words.index(query_word)
-                indices.append(idx)
-                exacts.append(idx)
-                for i in range(1, self.number_of_words_on_each_side):
-                    indices.append(idx + i)
-                    indices.append(idx - i)
+        #     else:
+        #         idx = doc_words.index(query_word)
+        #         indices.append(idx)
+        #         exacts.append(idx)
+        #         for i in range(1, self.number_of_words_on_each_side):
+        #             indices.append(idx + i)
+        #             indices.append(idx - i)
 
-        indices = sorted(list(set(indices)))
+        # indices = sorted(list(set(indices)))
 
-        if len(indices) == 0:
-            return "...", query_words
+        # if len(indices) == 0:
+        #     return "...", query_words
 
-        if indices[0] > 0:
-            final_snippet = final_snippet + "... "
+        # if indices[0] > 0:
+        #     final_snippet = final_snippet + "... "
 
-        for idx, index in enumerate(indices):
-            if index < 0 or index >= len(doc_words):
-                continue
-            if idx > 0 and index > indices[idx - 1] + 1:
-                final_snippet = final_snippet + "... "
-            if index in exacts:
-                final_snippet = final_snippet + "***" + doc_words[index] + "*** "
-            else:
-                final_snippet = final_snippet + doc_words[index] + " "
+        # for idx, index in enumerate(indices):
+        #     if index < 0 or index >= len(doc_words):
+        #         continue
+        #     if idx > 0 and index > indices[idx - 1] + 1:
+        #         final_snippet = final_snippet + "... "
+        #     if index in exacts:
+        #         final_snippet = final_snippet + "***" + doc_words[index] + "*** "
+        #     else:
+        #         final_snippet = final_snippet + doc_words[index] + " "
 
-        if indices[-1] < len(doc_words) - 1:
-            final_snippet = final_snippet + "..."
+        # if indices[-1] < len(doc_words) - 1:
+        #     final_snippet = final_snippet + "..."
 
-        return final_snippet, not_exist_words
+        # return final_snippet, not_exist_words
 
 if __name__ == '__main__':    
     snip = Snippet(3)

@@ -3,8 +3,8 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join('Logic', 'core')))
-from indexer.indexes_enum import Indexes, Index_types
-from indexer.index_reader import Index_reader
+from .indexer.indexes_enum import Indexes, Index_types
+from .indexer.index_reader import Index_reader
 from utility import Preprocessor, Scorer
 
 
